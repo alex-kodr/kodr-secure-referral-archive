@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Kodr\SecureReferralArchive\GravityForms\SubmissionListener;
 use Kodr\SecureReferralArchive\Queue\QueueRepository;
 
 if (!defined('ABSPATH')) {
@@ -35,6 +36,7 @@ final class Kodr_SRA_Plugin
 
         if (class_exists('GFForms')) {
             Kodr_SRA_Gravity_Forms::hooks();
+            SubmissionListener::hooks();
         }
     }
 }
