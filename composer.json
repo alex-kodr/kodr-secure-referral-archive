@@ -16,5 +16,16 @@
         "psr-4": {
             "Kodr\\SecureReferralArchive\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kodr\\SecureReferralArchive\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }

@@ -33,7 +33,11 @@ summary). This file is the developer-facing entry point.
 
 ```bash
 composer install
+composer test
 ```
 
 No local WordPress environment is bundled with this repository. Test changes on
-a development or staging WordPress site with Gravity Forms active.
+a development or staging WordPress site with Gravity Forms active. Unit tests
+under `tests/` cover logic that doesn't require a full WordPress/Gravity Forms
+runtime (e.g. entry parsing) and use invented fixture data only — never real
+referral data.
