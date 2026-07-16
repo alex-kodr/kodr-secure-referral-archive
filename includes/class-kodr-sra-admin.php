@@ -66,7 +66,7 @@ final class Kodr_SRA_Admin
         $missing = $config->validationErrors();
         $counts = Kodr_SRA_Queue::counts();
         $forms = Kodr_SRA_Gravity_Forms::forms();
-        $last = Kodr_SRA_Queue::last_uploaded_gmt();
+        $last = Kodr_SRA_Queue::last_completed_at();
         $notice = isset($_GET['kodr_sra_notice']) ? sanitize_key(wp_unslash($_GET['kodr_sra_notice'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $message = isset($_GET['kodr_sra_message']) ? sanitize_text_field(wp_unslash($_GET['kodr_sra_message'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         ?>
@@ -90,7 +90,7 @@ final class Kodr_SRA_Admin
                 <tr><th>Prefix</th><td><code><?php echo esc_html($safeConfig['prefix'] ?: '(none)'); ?></code></td></tr>
                 <tr><th>Alert email</th><td><?php echo esc_html($safeConfig['alert_email']); ?></td></tr>
                 <tr><th>Last successful archive</th><td><?php echo $last ? esc_html(get_date_from_gmt($last, 'j M Y H:i:s')) : '—'; ?></td></tr>
-                <tr><th>Queue</th><td><?php echo esc_html(sprintf('Pending: %d · Retry: %d · Failed: %d · Uploaded: %d', $counts['pending'], $counts['retry'], $counts['failed'], $counts['uploaded'])); ?></td></tr>
+                <tr><th>Queue</th><td><?php echo esc_html(sprintf('Pending: %d · Retry: %d · Failed: %d · Completed: %d', $counts['pending'], $counts['retry'], $counts['failed'], $counts['completed'])); ?></td></tr>
                 </tbody>
             </table>
 

@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 
 final class Kodr_SRA_Queue
 {
-    public const TABLE_SUFFIX = 'kodr_referral_queue';
+    public const TABLE_SUFFIX = 'kodr_sra_queue';
 
     public static function table_name(): string
     {
@@ -27,21 +27,23 @@ final class Kodr_SRA_Queue
         $sql = "CREATE TABLE {$table} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             reference varchar(64) NOT NULL,
-            entry_id bigint(20) unsigned NOT NULL,
             form_id bigint(20) unsigned NOT NULL,
-            status varchar(24) NOT NULL DEFAULT 'pending',
+            entry_id bigint(20) unsigned NOT NULL,
+            status varchar(20) NOT NULL DEFAULT 'pending',
             attempts smallint(5) unsigned NOT NULL DEFAULT 0,
-            json_uploaded tinyint(1) NOT NULL DEFAULT 0,
-            pdf_uploaded tinyint(1) NOT NULL DEFAULT 0,
-            s3_prefix varchar(512) NOT NULL DEFAULT '',
-            last_error text NULL,
-            next_attempt_gmt datetime NULL,
-            created_gmt datetime NOT NULL,
-            updated_gmt datetime NOT NULL,
+            next_attempt_at datetime NULL,
+            last_attempt_at datetime NULL,
+            json_key varchar(1024) NULL,
+            pdf_key varchar(1024) NULL,
+            last_error_code varchar(100) NULL,
+            last_error_message text NULL,
+            created_at datetime NOT NULL,
+            updated_at datetime NOT NULL,
+            completed_at datetime NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY reference (reference),
-            KEY status_next (status, next_attempt_gmt),
-            KEY form_entry (form_id, entry_id)
+            UNIQUE KEY form_entry (form_id, entry_id),
+            KEY status_next (status, next_attempt_at)
         ) {$charset};";
 
         dbDelta($sql);
@@ -53,7 +55,7 @@ final class Kodr_SRA_Queue
     {
         global $wpdb;
         $table = self::table_name();
-        $statuses = ['pending', 'uploading', 'uploaded', 'retry', 'failed'];
+        $statuses = ['pending', 'processing', 'retry', 'completed', 'failed'];
         $counts = array_fill_keys($statuses, 0);
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -72,12 +74,12 @@ final class Kodr_SRA_Queue
         return $counts;
     }
 
-    public static function last_uploaded_gmt(): ?string
+    public static function last_completed_at(): ?string
     {
         global $wpdb;
         $table = self::table_name();
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $value = $wpdb->get_var("SELECT updated_gmt FROM {$table} WHERE status = 'uploaded' ORDER BY updated_gmt DESC LIMIT 1");
+        $value = $wpdb->get_var("SELECT completed_at FROM {$table} WHERE status = 'completed' ORDER BY completed_at DESC LIMIT 1");
         return is_string($value) && $value !== '' ? $value : null;
     }
 }
