@@ -99,7 +99,15 @@ final class Kodr_SRA_Admin
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <input type="hidden" name="action" value="kodr_sra_test_connection">
                 <?php wp_nonce_field('kodr_sra_test_connection'); ?>
-                <?php submit_button(__('Test S3 upload', 'kodr-secure-referral-archive'), 'primary', 'submit', false, ['disabled' => empty($missing) ? false : 'disabled']); ?>
+                <?php
+                // submit_button() renders any key in $other_attributes as an
+                // attribute regardless of its value (e.g. disabled="")  —
+                // HTML treats the mere presence of "disabled" as disabling
+                // the control, so the key must be omitted entirely when the
+                // button should be enabled.
+                $buttonAttributes = empty($missing) ? [] : ['disabled' => 'disabled'];
+                submit_button(__('Test S3 upload', 'kodr-secure-referral-archive'), 'primary', 'submit', false, $buttonAttributes);
+                ?>
             </form>
 
             <h2><?php esc_html_e('Gravity Forms', 'kodr-secure-referral-archive'); ?></h2>
