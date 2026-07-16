@@ -26,9 +26,9 @@ final class Kodr_SRA_Plugin
 
     public static function activate(): void
     {
-        if (version_compare(PHP_VERSION, '8.1', '<')) {
+        if (version_compare(PHP_VERSION, '8.4', '<')) {
             deactivate_plugins(plugin_basename(KODR_SRA_FILE));
-            wp_die('Kodr Secure Referral Archive requires PHP 8.1 or later.');
+            wp_die('Kodr Secure Referral Archive requires PHP 8.4 or later.');
         }
         QueueRepository::install();
     }

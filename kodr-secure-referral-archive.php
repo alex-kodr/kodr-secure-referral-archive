@@ -2,12 +2,13 @@
 /**
  * Plugin Name:       Kodr Secure Referral Archive
  * Plugin URI:        https://kodr.io/
- * Description:       Secure off-site archiving foundation for selected Gravity Forms submissions.
- * Version:           0.1.0
+ * Description:       Securely archives selected Gravity Forms submissions to a private Amazon S3 bucket, off the WordPress database.
+ * Version:           1.0.0
  * Author:            Kodr Digital Ltd
  * Author URI:        https://kodr.io/
- * Requires at least: 6.6
- * Requires PHP:      8.1
+ * Requires at least: 7.0
+ * Requires PHP:      8.4
+ * Requires Plugins:  gravityforms
  * Text Domain:       kodr-secure-referral-archive
  */
 
@@ -17,7 +18,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('KODR_SRA_VERSION', '0.1.0');
+define('KODR_SRA_VERSION', '1.0.0');
 define('KODR_SRA_FILE', __FILE__);
 define('KODR_SRA_DIR', plugin_dir_path(__FILE__));
 define('KODR_SRA_URL', plugin_dir_url(__FILE__));
