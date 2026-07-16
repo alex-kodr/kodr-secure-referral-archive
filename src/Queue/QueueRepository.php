@@ -271,6 +271,72 @@ final class QueueRepository
         return is_string($value) && $value !== '' ? $value : null;
     }
 
+    /**
+     * @return array{items: QueueItem[], total: int}
+     */
+    public function paginate(?QueueStatus $status, int $page, int $perPage): array
+    {
+        global $wpdb;
+        $table = self::tableName();
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+
+        if ($status !== null) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $total = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$table} WHERE status = %s",
+                $status->value
+            ));
+
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $rows = $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM {$table} WHERE status = %s ORDER BY created_at DESC, id DESC LIMIT %d OFFSET %d",
+                $status->value,
+                $perPage,
+                $offset
+            ), ARRAY_A);
+        } else {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+            $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $rows = $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM {$table} ORDER BY created_at DESC, id DESC LIMIT %d OFFSET %d",
+                $perPage,
+                $offset
+            ), ARRAY_A);
+        }
+
+        $items = is_array($rows) ? array_map(static fn (array $row): QueueItem => QueueItem::fromRow($row), $rows) : [];
+
+        return ['items' => $items, 'total' => $total];
+    }
+
+    /**
+     * Manually retries a failed or in-retry item immediately: resets it to
+     * pending with a clean attempt count, so it gets a fresh full retry
+     * schedule (an admin retrying by hand has presumably fixed whatever
+     * caused the failure, e.g. AWS credentials).
+     */
+    public function retryNow(int $id): bool
+    {
+        global $wpdb;
+        $table = self::tableName();
+        $now = current_time('mysql', true);
+
+        $updated = $wpdb->query($wpdb->prepare(
+            "UPDATE {$table} SET status = %s, attempts = 0, next_attempt_at = NULL, last_error_code = NULL, last_error_message = NULL, updated_at = %s WHERE id = %d AND status IN (%s, %s)",
+            QueueStatus::Pending->value,
+            $now,
+            $id,
+            QueueStatus::Retry->value,
+            QueueStatus::Failed->value
+        ));
+
+        return is_int($updated) && $updated > 0;
+    }
+
     private static function generateReference(): string
     {
         return sprintf('REF-%s-%s', gmdate('Ymd'), strtoupper(bin2hex(random_bytes(3))));
