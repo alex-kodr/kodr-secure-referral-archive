@@ -22,6 +22,15 @@ define('KODR_SRA_FILE', __FILE__);
 define('KODR_SRA_DIR', plugin_dir_path(__FILE__));
 define('KODR_SRA_URL', plugin_dir_url(__FILE__));
 
+if (!file_exists(KODR_SRA_DIR . 'vendor/autoload.php')) {
+    add_action('admin_notices', static function (): void {
+        echo '<div class="notice notice-error"><p><strong>Kodr Secure Referral Archive:</strong> Composer dependencies are missing. Run <code>composer install</code> in the plugin directory.</p></div>';
+    });
+    return;
+}
+
+require_once KODR_SRA_DIR . 'vendor/autoload.php';
+
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-config.php';
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-queue.php';
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-s3-client.php';
