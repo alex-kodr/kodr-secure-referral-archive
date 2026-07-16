@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Kodr\SecureReferralArchive\Config\Configuration;
+use Kodr\SecureReferralArchive\Queue\QueueRepository;
 use Kodr\SecureReferralArchive\Storage\S3Storage;
 use Kodr\SecureReferralArchive\Storage\StorageException;
 
@@ -64,9 +65,10 @@ final class Kodr_SRA_Admin
         $config = Configuration::fromConstant();
         $safeConfig = $config->toSafeArray();
         $missing = $config->validationErrors();
-        $counts = Kodr_SRA_Queue::counts();
+        $queue = new QueueRepository();
+        $counts = $queue->countByStatus();
         $forms = Kodr_SRA_Gravity_Forms::forms();
-        $last = Kodr_SRA_Queue::last_completed_at();
+        $last = $queue->lastCompletedAt();
         $notice = isset($_GET['kodr_sra_notice']) ? sanitize_key(wp_unslash($_GET['kodr_sra_notice'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $message = isset($_GET['kodr_sra_message']) ? sanitize_text_field(wp_unslash($_GET['kodr_sra_message'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         ?>

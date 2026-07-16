@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Kodr\SecureReferralArchive\Queue\QueueRepository;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -24,7 +26,7 @@ final class Kodr_SRA_Plugin
             deactivate_plugins(plugin_basename(KODR_SRA_FILE));
             wp_die('Kodr Secure Referral Archive requires PHP 8.1 or later.');
         }
-        Kodr_SRA_Queue::install();
+        QueueRepository::install();
     }
 
     public function boot(): void
