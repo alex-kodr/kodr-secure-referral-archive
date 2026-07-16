@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Kodr\SecureReferralArchive\GravityForms\FormsRepository;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -43,21 +45,6 @@ final class Kodr_SRA_Gravity_Forms
     /** @return array<int,array{id:int,title:string,enabled:bool}> */
     public static function forms(): array
     {
-        if (!class_exists('GFAPI')) {
-            return [];
-        }
-
-        $forms = GFAPI::get_forms(false, false, 'title', 'ASC');
-        if (!is_array($forms)) {
-            return [];
-        }
-
-        return array_map(static function (array $form): array {
-            return [
-                'id'      => (int) ($form['id'] ?? 0),
-                'title'   => (string) ($form['title'] ?? ''),
-                'enabled' => !empty($form['kodr_sra_enabled']),
-            ];
-        }, $forms);
+        return (new FormsRepository())->all();
     }
 }
