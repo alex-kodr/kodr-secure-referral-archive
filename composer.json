@@ -6,7 +6,7 @@
     "require": {
         "php": ">=8.1",
         "aws/aws-sdk-php": "^3.388",
-        "tecnickcom/tcpdf": "^7.0"
+        "tecnickcom/tcpdf": "^6.10"
     },
     "config": {
         "optimize-autoloader": true,
