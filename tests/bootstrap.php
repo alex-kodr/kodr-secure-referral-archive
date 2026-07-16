@@ -13,6 +13,14 @@ if (!defined('ARRAY_A')) {
     define('ARRAY_A', 'ARRAY_A');
 }
 
+if (!defined('MINUTE_IN_SECONDS')) {
+    define('MINUTE_IN_SECONDS', 60);
+}
+
+if (!defined('HOUR_IN_SECONDS')) {
+    define('HOUR_IN_SECONDS', 60 * MINUTE_IN_SECONDS);
+}
+
 if (!function_exists('wp_json_encode')) {
     function wp_json_encode(mixed $data, int $options = 0, int $depth = 512): string|false
     {

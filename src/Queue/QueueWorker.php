@@ -15,7 +15,9 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Processes a small, locked batch of due queue items per run.
+ * Processes a small, locked batch of due queue items per run, and applies
+ * RetryPolicy to decide whether a failed item is retried or marked
+ * permanently failed.
  *
  * A short-lived transient lock stops two overlapping cron executions from
  * working the same batch at once. QueueRepository::markProcessing() also
@@ -31,7 +33,8 @@ final class QueueWorker
 
     public function __construct(
         private readonly QueueRepository $queue,
-        private readonly ArchiveProcessor $processor
+        private readonly ArchiveProcessor $processor,
+        private readonly RetryPolicy $retryPolicy = new RetryPolicy()
     ) {
     }
 
@@ -73,22 +76,23 @@ final class QueueWorker
         try {
             $this->processor->process($item);
         } catch (ArchiveProcessingException $exception) {
-            // Interim handling only: a fixed short retry delay, capped at a
-            // generous attempt count so nothing gets stuck forever. Replaced
-            // in the next commit with the documented 15m/1h/6h/12h schedule.
             $current = $this->queue->findById($item->id());
             if ($current === null) {
                 return;
             }
 
-            if ($current->attempts() >= 10) {
+            if (!$this->retryPolicy->shouldRetry($current->attempts())) {
                 $this->queue->markFailed($current->id(), 'ARCHIVE_FAILED', $exception->getMessage());
 
                 return;
             }
 
-            $nextAttempt = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->modify('+5 minutes');
-            $this->queue->scheduleRetry($current->id(), $nextAttempt, 'ARCHIVE_FAILED', $exception->getMessage());
+            $this->queue->scheduleRetry(
+                $current->id(),
+                $this->retryPolicy->nextAttemptAt($current->attempts()),
+                'ARCHIVE_FAILED',
+                $exception->getMessage()
+            );
         }
     }
 
