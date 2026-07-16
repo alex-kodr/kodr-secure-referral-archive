@@ -1,0 +1,45 @@
+# Security model
+
+## Credentials
+
+- AWS credentials are read only from the `KODR_GF_ARCHIVE` constant in
+  `wp-config.php`. They are never written to the WordPress database, options
+  table, or any file the plugin controls.
+- The IAM user must be scoped to least privilege: `s3:PutObject` on the target
+  bucket/prefix only. No `GetObject`, `ListBucket` or `DeleteObject`
+  permissions are required or used.
+- The S3 bucket must be private with no public ACLs. Objects are uploaded with
+  private access and SSE-S3 server-side encryption.
+
+## Referral data handling
+
+- Submitted form values exist only in memory for the duration of a single
+  queue-processing run. They are never written to `error_log`, `var_dump`,
+  `print_r`, the queue table, or alert emails.
+- The queue table (`wp_kodr_sra_queue`) stores operational metadata only:
+  status, timestamps, attempt counts, S3 object keys and sanitized error
+  codes/messages. It never stores field values, generated JSON, or PDF
+  contents.
+- Failure notification emails contain only: site, form ID/title, entry ID,
+  reference, attempt count, a sanitized error message, and a link to the admin
+  queue screen. They never include field values.
+- AWS SDK exception messages are sanitized (access keys and any embedded
+  request/response bodies stripped) before being logged or stored.
+
+## Access control
+
+- Every admin action (viewing the dashboard, running the connection test,
+  manually retrying a queue item) requires the `manage_options` capability.
+- Every state-changing admin action is protected by a WordPress nonce.
+- All admin-rendered output is escaped (`esc_html`, `esc_attr`, `esc_url`).
+- All variable SQL uses `$wpdb->prepare()`.
+
+## Data retention
+
+- This plugin never deletes Gravity Forms entries; that remains governed by
+  Gravity Forms' own entry retention policy.
+- Completed queue rows are retained for a bounded period (see
+  [database.md](database.md)) and then pruned — the S3 objects themselves are
+  never deleted by the plugin.
+- No live/real referral data is ever committed to source control, used in
+  fixtures, or included in the plugin's Git history.
