@@ -54,6 +54,31 @@ if (!function_exists('get_bloginfo')) {
     }
 }
 
+if (!function_exists('get_transient')) {
+    function get_transient(string $key): mixed
+    {
+        return $GLOBALS['__kodr_test_transients'][$key] ?? false;
+    }
+}
+
+if (!function_exists('set_transient')) {
+    function set_transient(string $key, mixed $value, int $expiration = 0): bool
+    {
+        $GLOBALS['__kodr_test_transients'][$key] = $value;
+
+        return true;
+    }
+}
+
+if (!function_exists('delete_transient')) {
+    function delete_transient(string $key): bool
+    {
+        unset($GLOBALS['__kodr_test_transients'][$key]);
+
+        return true;
+    }
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 // Global-namespace fakes (Gravity Forms' own classes live in the global
