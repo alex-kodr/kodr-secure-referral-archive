@@ -24,6 +24,8 @@ final class FormsRepository
             return [];
         }
 
+        $settings = new FormArchiveSettings();
+
         // GFAPI::get_forms() only returns forms matching the given "active"
         // state — there is no single call that returns every form regardless
         // of status. Fetching only one state is what caused the admin screen
@@ -45,11 +47,11 @@ final class FormsRepository
             )
         );
 
-        return array_map(static function (array $form): array {
+        return array_map(static function (array $form) use ($settings): array {
             return [
                 'id'      => (int) ($form['id'] ?? 0),
                 'title'   => (string) ($form['title'] ?? ''),
-                'enabled' => !empty($form['kodr_sra_enabled']),
+                'enabled' => $settings->isEnabledForForm($form),
             ];
         }, $forms);
     }

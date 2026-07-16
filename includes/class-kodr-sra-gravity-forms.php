@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Kodr\SecureReferralArchive\GravityForms\FormArchiveSettings;
 use Kodr\SecureReferralArchive\GravityForms\FormsRepository;
 
 if (!defined('ABSPATH')) {
@@ -21,7 +22,7 @@ final class Kodr_SRA_Gravity_Forms
      */
     public static function add_form_settings(array $settings, array $form): array
     {
-        $enabled = !empty($form['kodr_sra_enabled']);
+        $enabled = (new FormArchiveSettings())->isEnabledForForm($form);
         $settings['Kodr Secure Referral Archive'] = [
             'kodr_sra_enabled' => sprintf(
                 '<tr><th><label for="kodr_sra_enabled">%s</label></th><td><input type="checkbox" id="kodr_sra_enabled" name="kodr_sra_enabled" value="1" %s> <label for="kodr_sra_enabled">%s</label><p class="description">%s</p></td></tr>',
@@ -38,8 +39,7 @@ final class Kodr_SRA_Gravity_Forms
     /** @param array<string,mixed> $form @return array<string,mixed> */
     public static function save_form_settings(array $form): array
     {
-        $form['kodr_sra_enabled'] = isset($_POST['kodr_sra_enabled']) && wp_unslash($_POST['kodr_sra_enabled']) === '1'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-        return $form;
+        return (new FormArchiveSettings())->withEnabledFromRequest($form);
     }
 
     /** @return array<int,array{id:int,title:string,enabled:bool}> */
