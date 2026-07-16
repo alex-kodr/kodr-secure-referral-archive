@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Kodr\SecureReferralArchive\Cron\Scheduler;
 use Kodr\SecureReferralArchive\GravityForms\SubmissionListener;
+use Kodr\SecureReferralArchive\Queue\QueueCleanup;
 use Kodr\SecureReferralArchive\Queue\QueueRepository;
 use Kodr\SecureReferralArchive\Queue\QueueWorker;
 
@@ -41,6 +42,7 @@ final class Kodr_SRA_Plugin
             SubmissionListener::hooks();
             Scheduler::hooks();
             QueueWorker::hooks();
+            QueueCleanup::hooks();
         }
     }
 }

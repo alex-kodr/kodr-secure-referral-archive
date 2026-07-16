@@ -337,6 +337,43 @@ final class QueueRepository
         return is_int($updated) && $updated > 0;
     }
 
+    /**
+     * Deletes completed rows older than $cutoff (by completed_at). Never
+     * deletes the underlying S3 objects — only this operational metadata.
+     */
+    public function deleteCompletedBefore(string $cutoff): int
+    {
+        global $wpdb;
+        $table = self::tableName();
+
+        $deleted = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$table} WHERE status = %s AND completed_at IS NOT NULL AND completed_at < %s",
+            QueueStatus::Completed->value,
+            $cutoff
+        ));
+
+        return is_int($deleted) ? $deleted : 0;
+    }
+
+    /**
+     * Deletes permanently-failed rows not updated since $cutoff, giving an
+     * admin ample time (see QueueCleanup) to notice the failure email and
+     * act on it before the record is pruned.
+     */
+    public function deleteFailedBefore(string $cutoff): int
+    {
+        global $wpdb;
+        $table = self::tableName();
+
+        $deleted = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$table} WHERE status = %s AND updated_at < %s",
+            QueueStatus::Failed->value,
+            $cutoff
+        ));
+
+        return is_int($deleted) ? $deleted : 0;
+    }
+
     private static function generateReference(): string
     {
         return sprintf('REF-%s-%s', gmdate('Ymd'), strtoupper(bin2hex(random_bytes(3))));
