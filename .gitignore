@@ -1,0 +1,13 @@
+/vendor/
+/node_modules/
+/build/
+*.zip
+
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Never commit real AWS credentials or wp-config fixtures
+wp-config.php
+*.env
