@@ -23,8 +23,11 @@ decisions.
   etc.).
 - Archive generation and S3 uploads must happen in the background (WP-Cron
   queue worker), never synchronously during `gform_after_submission`.
-- This plugin does not delete Gravity Forms entries. Retention of GF entries
-  is left to Gravity Forms' own settings.
+- Once a submission is fully archived (JSON + PDF both confirmed uploaded to
+  S3), the plugin permanently deletes the source Gravity Forms entry via
+  `GFAPI::delete_entry()` — sensitive referral data must not linger in the
+  database. Entries that never successfully archive (all retries exhausted)
+  must be left alone, since S3 would otherwise be the only remaining copy.
 - File-upload fields are out of scope for version 1 — do not add handling for
   them.
 

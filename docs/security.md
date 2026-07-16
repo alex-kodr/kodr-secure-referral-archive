@@ -36,8 +36,16 @@
 
 ## Data retention
 
-- This plugin never deletes Gravity Forms entries; that remains governed by
-  Gravity Forms' own entry retention policy.
+- Once a submission is fully archived (both JSON and PDF confirmed uploaded to
+  S3), the plugin permanently deletes the source Gravity Forms entry via
+  `GFAPI::delete_entry()`. Sensitive referral data should spend as little
+  time as possible in the WordPress database, so this happens automatically
+  and immediately — it is not optional or per-form configurable.
+- If a submission permanently fails to archive (all retry attempts
+  exhausted), its Gravity Forms entry is deliberately left alone — S3 would
+  otherwise be the only remaining copy of that data. It falls back to
+  Gravity Forms' own entry retention policy, and the admin failure email
+  (see [architecture.md](architecture.md)) is the mechanism for follow-up.
 - Completed queue rows are retained for a bounded period (see
   [database.md](database.md)) and then pruned — the S3 objects themselves are
   never deleted by the plugin.

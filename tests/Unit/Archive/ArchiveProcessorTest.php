@@ -31,6 +31,7 @@ final class ArchiveProcessorTest extends TestCase
 
         \GFAPI::$forms = [];
         \GFAPI::$entries = [];
+        \GFAPI::$deletedEntryIds = [];
 
         if (!defined('KODR_GF_ARCHIVE')) {
             define('KODR_GF_ARCHIVE', [
@@ -72,6 +73,33 @@ final class ArchiveProcessorTest extends TestCase
         self::assertSame(6, $jsonPayload['form']['id']);
 
         self::assertStringStartsWith('%PDF-', $this->storage->stored[$updated->pdfKey()]['contents']);
+    }
+
+    public function test_it_permanently_deletes_the_source_entry_once_fully_archived(): void
+    {
+        [$form, $entry] = ReferralFormFixture::formAndEntry();
+        \GFAPI::$forms[6] = $form;
+        \GFAPI::$entries[999] = $entry;
+
+        $item = $this->queue->enqueue(6, 999);
+        (new ArchiveProcessor($this->queue, $this->config, $this->storage))->process($item);
+
+        self::assertSame([999], \GFAPI::$deletedEntryIds);
+    }
+
+    public function test_it_does_not_delete_the_source_entry_when_archiving_fails(): void
+    {
+        // No form registered for id 42 -> processing fails before completion.
+        $item = $this->queue->enqueue(42, 1);
+        \GFAPI::$entries[1] = ['id' => 1];
+
+        try {
+            (new ArchiveProcessor($this->queue, $this->config, $this->storage))->process($item);
+        } catch (ArchiveProcessingException) {
+            // expected
+        }
+
+        self::assertSame([], \GFAPI::$deletedEntryIds, 'the only copy of the data must not be deleted unless archiving succeeded');
     }
 
     public function test_it_does_not_reprocess_an_item_already_claimed_by_another_worker(): void

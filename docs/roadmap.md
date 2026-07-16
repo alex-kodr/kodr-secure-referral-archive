@@ -34,5 +34,7 @@ Tracking the 14-phase build plan. One phase (or numbered item) per commit.
 - No AWS credentials in the database
 - Forms enabled individually, disabled by default
 - No file-upload field support in version 1
-- Gravity Forms entries remain under their existing GF retention policy — this
-  plugin does not delete them
+- Once fully archived to S3, the source Gravity Forms entry is permanently
+  deleted automatically to minimise retention of sensitive data. Entries that
+  never successfully archive are left alone and fall back to Gravity Forms'
+  own retention policy

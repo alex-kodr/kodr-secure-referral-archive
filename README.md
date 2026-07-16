@@ -26,8 +26,10 @@ summary). This file is the developer-facing entry point.
 - No submitted form data ever appears in logs or alert emails
 - Archiving is enabled per Gravity Form, and disabled by default
 - File uploads attached to forms are out of scope for version 1
-- Gravity Forms entries are left in place under Gravity Forms' own retention
-  policy — this plugin does not delete GF entries
+- Once a submission is fully archived to S3, the source Gravity Forms entry
+  is permanently deleted automatically — sensitive data should not linger in
+  the database. Entries that never successfully archive are left alone and
+  fall back to Gravity Forms' own retention policy
 
 ## Development
 

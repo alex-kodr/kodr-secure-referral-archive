@@ -34,6 +34,9 @@ Archive\ArchiveProcessor
         ▼
 QueueRepository::markCompleted() / scheduleRetry() / markFailed()
         │
+        ▼ (only on markCompleted)
+GFAPI::delete_entry() — source entry permanently deleted once fully archived
+        │
         ▼
 Notification\FailureNotifier (only on terminal failure)
 ```

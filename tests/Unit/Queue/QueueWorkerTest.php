@@ -33,6 +33,7 @@ final class QueueWorkerTest extends TestCase
 
         \GFAPI::$forms = [];
         \GFAPI::$entries = [];
+        \GFAPI::$deletedEntryIds = [];
 
         if (!defined('KODR_GF_ARCHIVE')) {
             define('KODR_GF_ARCHIVE', [

@@ -15,6 +15,9 @@ if (!class_exists('GFAPI')) {
         /** @var array<int,array<string,mixed>> */
         public static array $entries = [];
 
+        /** @var int[] entry IDs passed to delete_entry(), in call order */
+        public static array $deletedEntryIds = [];
+
         /** @return array<string,mixed>|false */
         public static function get_form(int $formId): array|false
         {
@@ -25,6 +28,14 @@ if (!class_exists('GFAPI')) {
         public static function get_entry(int $entryId): array|WP_Error
         {
             return self::$entries[$entryId] ?? new WP_Error();
+        }
+
+        public static function delete_entry(int $entryId): bool
+        {
+            self::$deletedEntryIds[] = $entryId;
+            unset(self::$entries[$entryId]);
+
+            return true;
         }
     }
 }

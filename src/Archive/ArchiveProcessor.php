@@ -22,6 +22,14 @@ if (!defined('ABSPATH')) {
  * anywhere except the two uploaded S3 objects — the queue table only ever
  * records the resulting S3 keys and operational metadata.
  *
+ * Once both files are confirmed uploaded, the source Gravity Forms entry is
+ * permanently deleted — sensitive referral data should spend as little time
+ * as possible in the WordPress database. If a submission never successfully
+ * archives (all retries exhausted), its entry is deliberately left alone and
+ * falls back to Gravity Forms' own retention policy, since S3 would
+ * otherwise be the only copy of that data and admins are alerted to follow
+ * up (see FailureNotifier).
+ *
  * Idempotent: object keys are deterministic for a given queue item, so
  * re-processing after a retry re-uploads to the same keys instead of
  * creating duplicates.
@@ -72,11 +80,27 @@ final class ArchiveProcessor
             $this->storage->put($pdfKey, $pdf, 'application/pdf');
 
             $this->queue->markCompleted($item->id(), $jsonKey, $pdfKey);
+            $this->deleteSourceEntry($item->entryId());
 
             return true;
         } catch (\Throwable $exception) {
             throw new ArchiveProcessingException(self::sanitize($exception), 0, $exception);
         }
+    }
+
+    /**
+     * Best-effort: the archive has already succeeded and is durably stored
+     * in S3 by this point, so a failure here is not itself an archiving
+     * failure. If deletion doesn't succeed for any reason, the entry simply
+     * falls back to Gravity Forms' own retention policy.
+     */
+    private function deleteSourceEntry(int $entryId): void
+    {
+        if (!class_exists('GFAPI')) {
+            return;
+        }
+
+        \GFAPI::delete_entry($entryId);
     }
 
     /** @return array{0: array<string,mixed>, 1: array<string,mixed>} */
