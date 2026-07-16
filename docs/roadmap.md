@@ -21,6 +21,7 @@ Tracking the 14-phase build plan. One phase (or numbered item) per commit.
 - [x] **Phase 12 — Retention and cleanup**: GF retention confirmation, queue
       metadata cleanup (`QueueCleanup`)
 - [ ] **Phase 13 — Production testing**: full test matrix, security review
+      (security review complete; full manual test matrix pending)
 - [ ] **Phase 14 — Release**: production build, tag v1.0.0
 
 ## Agreed decisions

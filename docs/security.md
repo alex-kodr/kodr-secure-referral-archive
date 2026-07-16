@@ -43,3 +43,24 @@
   never deleted by the plugin.
 - No live/real referral data is ever committed to source control, used in
   fixtures, or included in the plugin's Git history.
+
+## Security review log
+
+Reviewed 2026-07-16 against this document's checklist:
+
+- Searched the codebase for `error_log`, `print_r`, `var_dump`, `var_export`,
+  hardcoded secrets, and direct `$_POST`/`$_GET` use — every request
+  parameter is sanitized (`absint`, `sanitize_key`, `sanitize_text_field`,
+  `wp_unslash`) before use.
+- Confirmed every admin action (`test_connection`, `retry_item`) checks
+  `current_user_can('manage_options')` and `check_admin_referer()` before
+  making any change, in that order.
+- Confirmed all queue table SQL goes through `$wpdb->prepare()`.
+- Confirmed `S3Storage` never calls `GetObject`/`HeadObject`/`DeleteObject`
+  and never sets a public ACL.
+- Searched the full Git history for AWS access key patterns — none found
+  outside obviously-fake test fixtures (`AKIATESTTESTTESTTEST` etc.).
+- Removed an orphaned legacy `Kodr_SRA_Queue` class file that had reappeared
+  on disk after being deleted in an earlier phase (dead code, not referenced
+  anywhere, no functional impact — cleaned up for hygiene).
+
