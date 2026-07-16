@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use Kodr\SecureReferralArchive\Config\Configuration;
+use Kodr\SecureReferralArchive\Storage\S3Storage;
+use Kodr\SecureReferralArchive\Storage\StorageException;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -57,8 +61,9 @@ final class Kodr_SRA_Admin
             wp_die(esc_html__('You do not have permission to view this page.', 'kodr-secure-referral-archive'));
         }
 
-        $config = Kodr_SRA_Config::all();
-        $missing = Kodr_SRA_Config::missing_keys();
+        $config = Configuration::fromConstant();
+        $safeConfig = $config->toSafeArray();
+        $missing = $config->validationErrors();
         $counts = Kodr_SRA_Queue::counts();
         $forms = Kodr_SRA_Gravity_Forms::forms();
         $last = Kodr_SRA_Queue::last_uploaded_gmt();
@@ -79,11 +84,11 @@ final class Kodr_SRA_Admin
                 <tbody>
                 <tr><th style="width:240px">Plugin version</th><td><?php echo esc_html(KODR_SRA_VERSION); ?></td></tr>
                 <tr><th>Gravity Forms</th><td><?php echo class_exists('GFForms') ? '<span style="color:#008a20">Available</span>' : '<span style="color:#b32d2e">Not detected</span>'; ?></td></tr>
-                <tr><th>AWS configuration</th><td><?php echo empty($missing) ? '<span style="color:#008a20">Complete</span>' : '<span style="color:#b32d2e">Missing: ' . esc_html(implode(', ', $missing)) . '</span>'; ?></td></tr>
-                <tr><th>Bucket</th><td><code><?php echo esc_html((string) $config['bucket']); ?></code></td></tr>
-                <tr><th>Region</th><td><code><?php echo esc_html((string) $config['region']); ?></code></td></tr>
-                <tr><th>Prefix</th><td><code><?php echo esc_html((string) ($config['prefix'] ?: '(none)')); ?></code></td></tr>
-                <tr><th>Alert email</th><td><?php echo esc_html((string) $config['alert_email']); ?></td></tr>
+                <tr><th>AWS configuration</th><td><?php echo empty($missing) ? '<span style="color:#008a20">Complete</span>' : '<span style="color:#b32d2e">' . esc_html(implode(' ', $missing)) . '</span>'; ?></td></tr>
+                <tr><th>Bucket</th><td><code><?php echo esc_html($safeConfig['bucket']); ?></code></td></tr>
+                <tr><th>Region</th><td><code><?php echo esc_html($safeConfig['region']); ?></code></td></tr>
+                <tr><th>Prefix</th><td><code><?php echo esc_html($safeConfig['prefix'] ?: '(none)'); ?></code></td></tr>
+                <tr><th>Alert email</th><td><?php echo esc_html($safeConfig['alert_email']); ?></td></tr>
                 <tr><th>Last successful archive</th><td><?php echo $last ? esc_html(get_date_from_gmt($last, 'j M Y H:i:s')) : '—'; ?></td></tr>
                 <tr><th>Queue</th><td><?php echo esc_html(sprintf('Pending: %d · Retry: %d · Failed: %d · Uploaded: %d', $counts['pending'], $counts['retry'], $counts['failed'], $counts['uploaded'])); ?></td></tr>
                 </tbody>
@@ -128,7 +133,9 @@ final class Kodr_SRA_Admin
 
         $redirect = admin_url('admin.php?page=' . self::PAGE_SLUG);
 
-        if (!Kodr_SRA_Config::is_ready()) {
+        $config = Configuration::fromConstant();
+
+        if (!$config->isValid()) {
             wp_safe_redirect(add_query_arg([
                 'kodr_sra_notice'  => 'error',
                 'kodr_sra_message' => 'AWS configuration is incomplete.',
@@ -137,12 +144,15 @@ final class Kodr_SRA_Admin
         }
 
         try {
-            $client = new Kodr_SRA_S3_Client(Kodr_SRA_Config::all());
-            $key = Kodr_SRA_Config::object_key('system-tests/connection-test-' . gmdate('Ymd-His') . '-' . wp_generate_password(6, false, false) . '.txt');
+            $storage = new S3Storage($config);
+            $key = $config->objectKey('system-tests/connection-test-' . gmdate('Ymd-His') . '-' . wp_generate_password(6, false, false) . '.txt');
             $body = "Kodr Secure Referral Archive connection test\nGenerated: " . gmdate('c') . "\nSite: " . home_url('/') . "\n";
-            $result = $client->put_object($key, $body, 'text/plain; charset=utf-8');
-            $message = sprintf('S3 test upload completed successfully: %s (HTTP %d).', $result['key'], $result['status']);
+            $result = $storage->put($key, $body, 'text/plain; charset=utf-8');
+            $message = sprintf('S3 test upload completed successfully: %s (ETag %s).', $result->key(), $result->etag());
             $notice = 'success';
+        } catch (StorageException $exception) {
+            $message = 'S3 test upload failed: ' . self::safe_error($exception->getMessage());
+            $notice = 'error';
         } catch (Throwable $exception) {
             $message = 'S3 test upload failed: ' . self::safe_error($exception->getMessage());
             $notice = 'error';

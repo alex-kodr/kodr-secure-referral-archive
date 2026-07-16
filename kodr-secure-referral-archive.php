@@ -31,9 +31,7 @@ if (!file_exists(KODR_SRA_DIR . 'vendor/autoload.php')) {
 
 require_once KODR_SRA_DIR . 'vendor/autoload.php';
 
-require_once KODR_SRA_DIR . 'includes/class-kodr-sra-config.php';
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-queue.php';
-require_once KODR_SRA_DIR . 'includes/class-kodr-sra-s3-client.php';
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-admin.php';
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-gravity-forms.php';
 require_once KODR_SRA_DIR . 'includes/class-kodr-sra-plugin.php';
