@@ -8,6 +8,7 @@ use Kodr\SecureReferralArchive\Archive\ArchiveProcessingException;
 use Kodr\SecureReferralArchive\Archive\ArchiveProcessor;
 use Kodr\SecureReferralArchive\Config\Configuration;
 use Kodr\SecureReferralArchive\GravityForms\SubmissionListener;
+use Kodr\SecureReferralArchive\Notification\FailureNotifier;
 use Kodr\SecureReferralArchive\Storage\S3Storage;
 
 if (!defined('ABSPATH')) {
@@ -34,7 +35,8 @@ final class QueueWorker
     public function __construct(
         private readonly QueueRepository $queue,
         private readonly ArchiveProcessor $processor,
-        private readonly RetryPolicy $retryPolicy = new RetryPolicy()
+        private readonly RetryPolicy $retryPolicy = new RetryPolicy(),
+        private readonly ?FailureNotifier $notifier = null
     ) {
     }
 
@@ -53,7 +55,7 @@ final class QueueWorker
         $queue = new QueueRepository();
         $processor = new ArchiveProcessor($queue, $config, new S3Storage($config));
 
-        (new self($queue, $processor))->run();
+        (new self($queue, $processor, new RetryPolicy(), new FailureNotifier($config)))->run();
     }
 
     public function run(): void
@@ -83,6 +85,7 @@ final class QueueWorker
 
             if (!$this->retryPolicy->shouldRetry($current->attempts())) {
                 $this->queue->markFailed($current->id(), 'ARCHIVE_FAILED', $exception->getMessage());
+                $this->notifyFailure($this->queue->findById($current->id()) ?? $current);
 
                 return;
             }
@@ -94,6 +97,26 @@ final class QueueWorker
                 $exception->getMessage()
             );
         }
+    }
+
+    private function notifyFailure(QueueItem $item): void
+    {
+        if ($this->notifier === null) {
+            return;
+        }
+
+        $this->notifier->notify($item, $this->formTitle($item->formId()));
+    }
+
+    private function formTitle(int $formId): string
+    {
+        if (!class_exists('GFAPI')) {
+            return 'Unknown form';
+        }
+
+        $form = \GFAPI::get_form($formId);
+
+        return is_array($form) && is_string($form['title'] ?? null) ? $form['title'] : 'Unknown form';
     }
 
     private function acquireLock(): bool

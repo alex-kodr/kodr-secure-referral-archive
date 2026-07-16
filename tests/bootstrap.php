@@ -62,6 +62,33 @@ if (!function_exists('get_bloginfo')) {
     }
 }
 
+if (!function_exists('home_url')) {
+    function home_url(string $path = ''): string
+    {
+        return 'https://example.test' . $path;
+    }
+}
+
+if (!function_exists('admin_url')) {
+    function admin_url(string $path = ''): string
+    {
+        return 'https://example.test/wp-admin/' . $path;
+    }
+}
+
+if (!function_exists('wp_mail')) {
+    function wp_mail(string $to, string $subject, string $message): bool
+    {
+        $GLOBALS['__kodr_test_mails'][] = [
+            'to'      => $to,
+            'subject' => $subject,
+            'message' => $message,
+        ];
+
+        return true;
+    }
+}
+
 if (!function_exists('get_transient')) {
     function get_transient(string $key): mixed
     {
