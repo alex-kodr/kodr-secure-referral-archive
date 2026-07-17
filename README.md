@@ -1,4 +1,4 @@
-# Kodr Secure Referral Archive
+# Gravity Forms Secure Offsite Submissions to AWS S3 Bucket
 
 A WordPress plugin that securely archives selected Gravity Forms submissions to a
 private Amazon S3 bucket, off the WordPress database, for organisations that need
