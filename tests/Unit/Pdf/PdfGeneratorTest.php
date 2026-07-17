@@ -18,7 +18,7 @@ final class PdfGeneratorTest extends TestCase
         [$form, $entry] = ReferralFormFixture::formAndEntry();
         $data = (new EntryParser())->parse($form, $entry, 'REF-TEST-0001');
 
-        $pdf = (new PdfGenerator())->generate($data, 'We Are Survivors (test)');
+        $pdf = (new PdfGenerator())->generate($data, 'Example Organisation (test)');
 
         self::assertStringStartsWith('%PDF-', $pdf);
         self::assertStringContainsString('%%EOF', $pdf);
@@ -29,7 +29,7 @@ final class PdfGeneratorTest extends TestCase
         $fields = [new ArchiveField('1', 'A very long answer', str_repeat('Lorem ipsum dolor sit amet. ', 400))];
         $data = new ArchiveData('REF-TEST-LONG', 6, 'Long Answer Test Form', 1, new \DateTimeImmutable('2026-07-16T09:15:00+00:00'), $fields);
 
-        $pdf = (new PdfGenerator())->generate($data, 'We Are Survivors (test)');
+        $pdf = (new PdfGenerator())->generate($data, 'Example Organisation (test)');
 
         self::assertGreaterThan(1, $this->countPdfPages($pdf), 'a very long answer must flow onto additional pages');
     }
@@ -47,7 +47,7 @@ final class PdfGeneratorTest extends TestCase
         // PdfGenerator maps ArchiveField::isEmpty() to the literal string
         // "Not provided" — covered structurally here; a visual check of the
         // rendered page is the developer's job when testing on a real site.
-        self::assertStringStartsWith('%PDF-', (new PdfGenerator())->generate($data, 'We Are Survivors (test)'));
+        self::assertStringStartsWith('%PDF-', (new PdfGenerator())->generate($data, 'Example Organisation (test)'));
     }
 
     private function countPdfPages(string $pdf): int

@@ -32,7 +32,7 @@ final class FailureNotifierTest extends TestCase
         $config = Configuration::fromConstant();
         $item = $this->makeItem();
 
-        (new FailureNotifier($config))->notify($item, 'Online Referral Form - Survivor');
+        (new FailureNotifier($config))->notify($item, 'Example Referral Form');
 
         self::assertCount(1, $GLOBALS['__kodr_test_mails']);
         $mail = $GLOBALS['__kodr_test_mails'][0];
@@ -40,7 +40,7 @@ final class FailureNotifierTest extends TestCase
         self::assertSame('alerts@example.test', $mail['to']);
         self::assertStringContainsString('REF-20260716-A82F19', $mail['subject']);
         self::assertStringContainsString('Entry ID: 3958', $mail['message']);
-        self::assertStringContainsString('Form: #6 Online Referral Form - Survivor', $mail['message']);
+        self::assertStringContainsString('Form: #6 Example Referral Form', $mail['message']);
         self::assertStringContainsString('Attempts: 5', $mail['message']);
         self::assertStringContainsString('S3 error', $mail['message']);
 

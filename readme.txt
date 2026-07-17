@@ -35,8 +35,8 @@ Key points:
 Add this above the "That's all" line in wp-config.php:
 
     define('KODR_GF_ARCHIVE', [
-        'region'        => 'eu-west-2',
-        'bucket'        => 'kodr-gf-referrals',
+        'region'        => 'us-east-1',
+        'bucket'        => 'your-organisation-referrals',
         'prefix'        => '',
         'access_key_id' => 'YOUR_ACCESS_KEY_ID',
         'secret_key'    => 'YOUR_SECRET_ACCESS_KEY',

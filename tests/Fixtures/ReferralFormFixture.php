@@ -20,7 +20,7 @@ final class ReferralFormFixture
     {
         $form = [
             'id'     => 6,
-            'title'  => 'Online Referral Form - Survivor (test fixture)',
+            'title'  => 'Example Referral Form (test fixture)',
             'fields' => [
                 ['id' => 1, 'type' => 'page', 'label' => 'Page 1'],
                 ['id' => 2, 'type' => 'html', 'label' => 'Instructions'],
@@ -29,7 +29,7 @@ final class ReferralFormFixture
                 [
                     'id'     => 5,
                     'type'   => 'name',
-                    'label'  => 'Survivor name',
+                    'label'  => 'Applicant name',
                     'inputs' => [
                         ['id' => '5.3', 'label' => 'First'],
                         ['id' => '5.6', 'label' => 'Last'],

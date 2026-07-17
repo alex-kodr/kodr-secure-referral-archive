@@ -124,7 +124,7 @@ final class EntryParserTest extends TestCase
 
         self::assertSame('REF-TEST-0001', $data->reference());
         self::assertSame(6, $data->formId());
-        self::assertSame('Online Referral Form - Survivor (test fixture)', $data->formTitle());
+        self::assertSame('Example Referral Form (test fixture)', $data->formTitle());
         self::assertSame(999, $data->entryId());
         self::assertSame('2026-07-16 09:15:00', $data->submittedAt()->format('Y-m-d H:i:s'));
     }

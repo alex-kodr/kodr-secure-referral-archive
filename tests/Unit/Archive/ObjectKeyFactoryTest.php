@@ -12,15 +12,15 @@ final class ObjectKeyFactoryTest extends TestCase
 {
     public function test_it_builds_the_expected_key_structure(): void
     {
-        $data = $this->makeData(6, 'Online Referral Form - Survivor', '2026-07-16T09:15:00+00:00', 'REF-20260716-A82F19');
+        $data = $this->makeData(6, 'Example Referral Form', '2026-07-16T09:15:00+00:00', 'REF-20260716-A82F19');
         $factory = new ObjectKeyFactory();
 
         self::assertSame(
-            'form-6-online-referral-form-survivor/2026/07/REF-20260716-A82F19/referral.json',
+            'form-6-example-referral-form/2026/07/REF-20260716-A82F19/referral.json',
             $factory->jsonKey($data)
         );
         self::assertSame(
-            'form-6-online-referral-form-survivor/2026/07/REF-20260716-A82F19/referral.pdf',
+            'form-6-example-referral-form/2026/07/REF-20260716-A82F19/referral.pdf',
             $factory->pdfKey($data)
         );
     }
@@ -57,7 +57,7 @@ final class ObjectKeyFactoryTest extends TestCase
     {
         // The key must be derivable purely from form id/title, submission
         // month, and the (non-identifying) reference — never from field
-        // values such as a survivor's name or email.
+        // values such as a person's name or email.
         $data = $this->makeData(6, 'Online Referral Form', '2026-07-16T09:15:00+00:00', 'REF-20260716-A82F19');
         $key = (new ObjectKeyFactory())->jsonKey($data);
 

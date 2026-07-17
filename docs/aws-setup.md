@@ -2,8 +2,8 @@
 
 ## Bucket
 
-1. Create a private S3 bucket (e.g. `kodr-gf-referrals`) in your chosen region.
-   Block all public access.
+1. Create a private S3 bucket (e.g. `your-organisation-referrals`) in your
+   chosen region. Block all public access.
 2. Enable default encryption with SSE-S3 (`AES256`).
 3. No bucket policy is required to make objects public — this plugin never
    requires public read access.
@@ -20,7 +20,7 @@ scoped to the bucket/prefix in use:
         {
             "Effect": "Allow",
             "Action": ["s3:PutObject"],
-            "Resource": "arn:aws:s3:::kodr-gf-referrals/*"
+            "Resource": "arn:aws:s3:::your-organisation-referrals/*"
         }
     ]
 }
@@ -35,12 +35,12 @@ Add this above the `/* That's all, stop editing! */` line:
 
 ```php
 define('KODR_GF_ARCHIVE', [
-    'region'        => 'eu-west-2',
-    'bucket'        => 'kodr-gf-referrals',
+    'region'        => 'us-east-1',
+    'bucket'        => 'your-organisation-referrals',
     'prefix'        => '',
     'access_key_id' => 'YOUR_ACCESS_KEY_ID',
     'secret_key'    => 'YOUR_SECRET_ACCESS_KEY',
-    'alert_email'   => 'alex@kodr.io',
+    'alert_email'   => 'alerts@example.com',
 ]);
 ```
 
