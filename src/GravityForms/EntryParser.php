@@ -25,6 +25,11 @@ if (!defined('ABSPATH')) {
  * with multiple inputs (e.g. Name, Address, Checkboxes) are combined into a
  * single ArchiveField rather than one row per sub-input.
  *
+ * Values produced by third-party "repeater" field add-ons (stored as
+ * serialized PHP, e.g. `a:1:{i:8510;a:8:{s:16:"input_1034__8510";...}}`) are
+ * expanded into readable text via RepeaterFieldFormatter, rather than being
+ * dumped verbatim into the archive.
+ *
  * Field objects are duck-typed (checked with is_object()/is_array()) rather
  * than type-hinted against Gravity Forms' GF_Field, so this class can be
  * exercised in tests with plain array fixtures and has no hard dependency on
@@ -34,12 +39,18 @@ final class EntryParser
 {
     private const EXCLUDED_FIELD_TYPES = ['page', 'html', 'section'];
 
+    public function __construct(
+        private readonly RepeaterFieldFormatter $repeaterFormatter = new RepeaterFieldFormatter()
+    ) {
+    }
+
     /**
      * @param array<string,mixed> $form
      * @param array<string,mixed> $entry
      */
     public function parse(array $form, array $entry, string $reference): ArchiveData
     {
+        $fieldLabelsById = $this->buildFieldLabelMap($form);
         $fields = [];
 
         foreach (($form['fields'] ?? []) as $field) {
@@ -47,10 +58,13 @@ final class EntryParser
                 continue;
             }
 
+            $value = $this->fieldValue($field, $entry);
+            $expanded = $this->repeaterFormatter->format($value, $fieldLabelsById);
+
             $fields[] = new ArchiveField(
                 $this->fieldId($field),
                 $this->fieldLabel($field),
-                $this->fieldValue($field, $entry)
+                $expanded ?? $value
             );
         }
 
@@ -62,6 +76,26 @@ final class EntryParser
             $this->parseSubmittedAt($entry),
             $fields
         );
+    }
+
+    /**
+     * @param array<string,mixed> $form
+     * @return array<int,string>
+     */
+    private function buildFieldLabelMap(array $form): array
+    {
+        $map = [];
+
+        foreach (($form['fields'] ?? []) as $field) {
+            $id = $this->fieldId($field);
+            if ($id === '') {
+                continue;
+            }
+
+            $map[(int) $id] = $this->fieldLabel($field);
+        }
+
+        return $map;
     }
 
     private function isArchivable(mixed $field): bool

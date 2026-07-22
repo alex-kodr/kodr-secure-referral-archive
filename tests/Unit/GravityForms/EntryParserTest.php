@@ -129,6 +129,39 @@ final class EntryParserTest extends TestCase
         self::assertSame('2026-07-16 09:15:00', $data->submittedAt()->format('Y-m-d H:i:s'));
     }
 
+    public function test_it_expands_third_party_repeater_field_values(): void
+    {
+        $form = [
+            'id'     => 9,
+            'title'  => 'Repeater test form',
+            'fields' => [
+                ['id' => 301, 'type' => 'text', 'label' => 'Make:'],
+                ['id' => 302, 'type' => 'text', 'label' => 'Model:'],
+                ['id' => 303, 'type' => 'text', 'label' => 'Untitled'],
+            ],
+        ];
+
+        $entry = [
+            'id'           => 1,
+            'date_created' => '2026-07-16 09:15:00',
+            '301'          => '',
+            '302'          => '',
+            '303'          => serialize([
+                8510 => [
+                    'input_301__8510' => 'Toyota',
+                    'input_302__8510' => 'Corolla',
+                ],
+            ]),
+        ];
+
+        $data = (new EntryParser())->parse($form, $entry, 'REF-TEST-0002');
+
+        $repeater = $this->fieldById($data->fields(), '303');
+
+        self::assertNotNull($repeater);
+        self::assertSame("Make: Toyota\nModel: Corolla", $repeater->value());
+    }
+
     /** @param ArchiveField[] $fields */
     private function fieldById(array $fields, string $fieldId): ?ArchiveField
     {
